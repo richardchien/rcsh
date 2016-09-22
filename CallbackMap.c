@@ -1,5 +1,9 @@
 //
-// Created by Richard Chien on 9/22/16.
+//  CallbackMap.c
+//  rcsh
+//
+//  Created by Richard Chien on 9/22/16.
+//  Copyright (c) 2016 Richard Chien. All rights reserved.
 //
 
 #include "CallbackMap.h"

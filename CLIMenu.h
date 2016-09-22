@@ -1,5 +1,9 @@
 //
-// Created by Richard Chien on 9/22/16.
+//  CLIMenu.h
+//  rcsh
+//
+//  Created by Richard Chien on 9/22/16.
+//  Copyright (c) 2016 Richard Chien. All rights reserved.
 //
 
 #ifndef CLIMENU_CLIMENU_H

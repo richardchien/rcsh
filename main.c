@@ -1,3 +1,11 @@
+//
+//  main.c
+//  rcsh
+//
+//  Created by Richard Chien on 9/22/16.
+//  Copyright (c) 2016 Richard Chien. All rights reserved.
+//
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -15,7 +23,7 @@ int echo(int argc, char **argv) {
         if (i > 1) {
             putchar(' ');
         }
-        printf(argv[i]);
+        printf("%s", argv[i]);
     }
     putchar('\n');
     return 0;
@@ -92,7 +100,7 @@ int cd(int argc, char **argv) {
 int pwd(int argc, char **argv) {
     if (argc == 1) {
         if (currDir) {
-            printf(currDir);
+            printf("%s", currDir);
             putchar('\n');
         }
     } else {
