@@ -22,16 +22,19 @@ void menuClear(CLIMenu *self);
 
 void menuRun(CLIMenu *self, const char *exitCommand);
 
-int defaultNoSuchCommandCallback(int argc, char **argv) {
+int defaultNoSuchCommandCallback(CLIMenu *menu, int argc, char **argv) {
     printf("command not found: %s\n", argv[0]);
     return 0;
 }
 
-CLIMenu *newCLIMenu(const char *name) {
+CLIMenu *newCLIMenu() {
     CLIMenu *menu = malloc(sizeof(CLIMenu));
     menu->__callbackMap = newCallbackMap();
+    menu->data = NULL;
+    menu->initializeCallback = NULL;
+    menu->finalizeCallback = NULL;
+    menu->promptCallback = NULL;
     menu->noSuchCommandCallback = defaultNoSuchCommandCallback;
-    menu->name = strdup(name);
     menu->add = menuAdd;
     menu->remove = menuRemove;
     menu->clear = menuClear;
@@ -48,7 +51,6 @@ void deleteCLIMenu(CLIMenu **pself) {
     *pself = NULL;
     if (self) {
         deleteCallbackMap((CallbackMap **) &self->__callbackMap);
-        free(self->name);
         free(self);
     }
 }
@@ -157,9 +159,17 @@ void freeCommand(Command command) {
 }
 
 void menuRun(CLIMenu *self, const char *exitCommand) {
+    if (self->initializeCallback) {
+        self->initializeCallback(self);
+    }
+
     CallbackMap *map = self->__callbackMap;
     for (;;) {
-        printf("%s> ", self->name);
+        if (self->promptCallback) {
+            self->promptCallback(self);
+        } else {
+            printf(">>> ");
+        }
         Command command = readCommand();
         if (command.argc > 0) {
             if (strcmp(exitCommand, command.argv[0]) == 0) {
@@ -168,14 +178,18 @@ void menuRun(CLIMenu *self, const char *exitCommand) {
             } else {
                 Callback callback = map->get(map, command.argv[0]);
                 if (callback) {
-                    callback(command.argc, command.argv);
+                    callback(self, command.argc, command.argv);
                 } else {
                     if (self->noSuchCommandCallback) {
-                        self->noSuchCommandCallback(command.argc, command.argv);
+                        self->noSuchCommandCallback(self, command.argc, command.argv);
                     }
                 }
                 freeCommand(command);
             }
         }
+    }
+
+    if (self->finalizeCallback) {
+        self->finalizeCallback(self);
     }
 }

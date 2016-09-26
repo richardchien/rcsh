@@ -15,10 +15,11 @@ typedef struct _CLIMenu CLIMenu;
 
 struct _CLIMenu {
     void *__callbackMap;
-
+    void *data;
+    SimpleCallback initializeCallback;
+    SimpleCallback finalizeCallback;
+    SimpleCallback promptCallback;
     Callback noSuchCommandCallback;
-
-    char *name;
 
     void (*add)(CLIMenu *self, const char *command, Callback callback);
 
@@ -29,7 +30,7 @@ struct _CLIMenu {
     void (*run)(CLIMenu *self, const char *exitCommand);
 };
 
-CLIMenu *newCLIMenu(const char *name);
+CLIMenu *newCLIMenu();
 
 void deleteCLIMenu(CLIMenu **pself);
 

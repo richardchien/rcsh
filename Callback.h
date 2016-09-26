@@ -9,6 +9,10 @@
 #ifndef CLIMENU_CALLBACK_H
 #define CLIMENU_CALLBACK_H
 
-typedef int (*Callback)(int argc, char **argv);
+typedef struct _CLIMenu CLIMenu;
+
+typedef int (*Callback)(CLIMenu *menu, int argc, char **argv);
+
+typedef void (*SimpleCallback)(CLIMenu *menu);
 
 #endif //CLIMENU_CALLBACK_H

@@ -13,12 +13,29 @@
 
 #include "CLIMenu.h"
 
-int hello(int argc, char **argv) {
+typedef struct _Data {
+    char *currDir;
+} Data;
+
+void initialize(CLIMenu *menu) {
+    Data *data = malloc(sizeof(Data));
+    data->currDir = strdup(getenv("HOME"));
+    menu->data = data;
+}
+
+void finalize(CLIMenu *menu) {
+    Data *data = menu->data;
+    free(data->currDir);
+    free(data);
+    menu->data = NULL;
+}
+
+int hello(CLIMenu *menu, int argc, char **argv) {
     printf("Hello! Welcome to rcsh!\n");
     return 0;
 }
 
-int echo(int argc, char **argv) {
+int echo(CLIMenu *menu, int argc, char **argv) {
     for (int i = 1; i < argc; i++) {
         if (i > 1) {
             putchar(' ');
@@ -28,8 +45,6 @@ int echo(int argc, char **argv) {
     putchar('\n');
     return 0;
 }
-
-char *currDir;
 
 char *concatPath(const char *old, const char *new) {
     char *tmp;
@@ -71,22 +86,23 @@ char *concatPath(const char *old, const char *new) {
     return tmp;
 }
 
-int cd(int argc, char **argv) {
+int cd(CLIMenu *menu, int argc, char **argv) {
+    Data *data = menu->data;
     if (argc == 1) {
-        if (currDir) {
-            free(currDir);
+        if (data->currDir) {
+            free(data->currDir);
         }
-        currDir = strdup(getenv("HOME"));
+        data->currDir = strdup(getenv("HOME"));
     } else if (argc == 2) {
-        char *tmp = concatPath(currDir, argv[1]);
+        char *tmp = concatPath(data->currDir, argv[1]);
         DIR *dir;
         if ((dir = opendir(tmp)) != NULL) {
             // Directory exists.
             closedir(dir);
-            if (currDir) {
-                free(currDir);
+            if (data->currDir) {
+                free(data->currDir);
             }
-            currDir = tmp;
+            data->currDir = tmp;
         } else {
             // Failed to open directory.
             printf("cd: %s: no such directory or permission denied\n", argv[1]);
@@ -97,10 +113,11 @@ int cd(int argc, char **argv) {
     return 0;
 }
 
-int pwd(int argc, char **argv) {
+int pwd(CLIMenu *menu, int argc, char **argv) {
+    Data *data = menu->data;
     if (argc == 1) {
-        if (currDir) {
-            printf("%s", currDir);
+        if (data->currDir) {
+            printf("%s", data->currDir);
             putchar('\n');
         }
     } else {
@@ -109,13 +126,14 @@ int pwd(int argc, char **argv) {
     return 0;
 }
 
-int ls(int argc, char **argv) {
+int ls(CLIMenu *menu, int argc, char **argv) {
+    Data *data = menu->data;
     if (argc <= 2) {
         char *path;
         if (argc == 1) {
-            path = currDir;
+            path = data->currDir;
         } else {
-            path = concatPath(currDir, argv[1]);
+            path = concatPath(data->currDir, argv[1]);
         }
         DIR *dir;
         struct dirent *ent;
@@ -144,32 +162,17 @@ int ls(int argc, char **argv) {
     return 0;
 }
 
-int exec(int argc, char **argv) {
-    int cmdLen = argc - 1 - 1;  // number of space
-    for (int i = 1; i < argc; i++) {
-        cmdLen += strlen(argv[i]);
-    }
-    char *cmd = malloc(sizeof(char) * (cmdLen + 1));
-    cmd[0] = '\0';
-    for (int i = 1; i < argc; i++) {
-        if (i > 1) {
-            strcat(cmd, " ");
-        }
-        strcat(cmd, argv[i]);
-    }
-    int code = system(cmd);
-    free(cmd);
-    return code;
-}
-
-int noSuchCommand(int argc, char **argv) {
-    printf("rcsh: %s: no such command, using system shell\n", argv[0]);
-    int cmdLen = argc - 1;  // number of space
+int executeInSystemShell(CLIMenu *menu, int argc, char **argv) {
+    Data *data = menu->data;
+    size_t cmdLen = strlen("cd  && ");
+    cmdLen += strlen(data->currDir);
+    cmdLen += argc - 1;  // number of space
     for (int i = 0; i < argc; i++) {
         cmdLen += strlen(argv[i]);
     }
     char *cmd = malloc(sizeof(char) * (cmdLen + 1));
     cmd[0] = '\0';
+    sprintf(cmd, "cd %s && ", data->currDir);  // enter current directory
     for (int i = 0; i < argc; i++) {
         if (i > 0) {
             strcat(cmd, " ");
@@ -181,7 +184,16 @@ int noSuchCommand(int argc, char **argv) {
     return code;
 }
 
-int help(int argc, char **argv) {
+int sys(CLIMenu *menu, int argc, char **argv) {
+    return executeInSystemShell(menu, argc - 1, &argv[1]);
+}
+
+int noSuchCommand(CLIMenu *menu, int argc, char **argv) {
+    printf("rcsh: %s: no such command, using system shell\n", argv[0]);
+    return executeInSystemShell(menu, argc, argv);
+}
+
+int help(CLIMenu *menu, int argc, char **argv) {
     printf("Commands may be abbreviated. Commands are:\n"
                    "help\t\tprint help information\n"
                    "hello\t\tprint hello message\n"
@@ -189,22 +201,39 @@ int help(int argc, char **argv) {
                    "cd\t\tenter a directory\n"
                    "pwd\t\tprint current directory\n"
                    "ls\t\tlist items in current directory\n"
-                   "exec\t\trun command in system shell\n"
+                   "sys\t\trun command in system shell\n"
                    "exit\t\texit the shell\n");
     return 0;
 }
 
+void prompt(CLIMenu *menu) {
+    Data *data = menu->data;
+    const char *home = getenv("HOME");
+    size_t len = strlen(home);
+    const char *found = strstr(data->currDir, home);
+    if (found == data->currDir
+        && (*(found + len) == '\0' || *(found + len) == '/')) {
+        printf("~%s", found + len);
+    } else {
+        printf("%s", data->currDir);
+    }
+
+    printf(" $ ");
+}
+
 int main(int argc, char **argv) {
-    currDir = strdup(getenv("HOME"));
-    CLIMenu *menu = newCLIMenu("rcsh");
+    CLIMenu *menu = newCLIMenu();
     menu->add(menu, "hello", hello);
     menu->add(menu, "echo", echo);
     menu->add(menu, "cd", cd);
     menu->add(menu, "pwd", pwd);
     menu->add(menu, "ls", ls);
-    menu->add(menu, "exec", exec);
-    menu->noSuchCommandCallback = noSuchCommand;
+    menu->add(menu, "sys", sys);
     menu->add(menu, "help", help);
+    menu->noSuchCommandCallback = noSuchCommand;
+    menu->initializeCallback = initialize;
+    menu->finalizeCallback = finalize;
+    menu->promptCallback = prompt;
     menu->run(menu, "exit");
     deleteCLIMenu(&menu);
     return 0;
