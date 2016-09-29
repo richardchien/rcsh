@@ -2,7 +2,7 @@
 
 [![License](https://img.shields.io/github/license/mashape/apistatus.svg?maxAge=2592000)](LICENSE)
 
-完成 [中科大《软件工程》MOOC](https://www.shiyanlou.com/courses/122) 中的可重用命令行菜单小程序，其实相当于实现了个非常非常简易的 shell。
+完成 [中科大《软件工程》MOOC](http://mooc.study.163.com/course/USTC-1000002006) 中的可重用命令行菜单小程序，其实相当于实现了个非常非常简易的 shell。
 
 其中，`CLIMenu` 及其所依赖的 `Callback`、`CallbackMap` 可以单独拿来用在其它各类需要接受用户输入命令的命令行程序中（如 ftp、telnet），`main.c` 则是实现类似 shell 的效果。
 
