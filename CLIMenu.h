@@ -30,8 +30,8 @@ struct _CLIMenu {
     void (*run)(CLIMenu *self, const char *exitCommand);
 };
 
-CLIMenu *newCLIMenu();
+CLIMenu *new_CLIMenu();
 
-void deleteCLIMenu(CLIMenu **pself);
+void delete_CLIMenu(CLIMenu **pself);
 
 #endif //CLIMENU_CLIMENU_H

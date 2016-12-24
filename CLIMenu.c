@@ -14,35 +14,35 @@
 
 #include "CallbackMap.h"
 
-void menuAdd(CLIMenu *self, const char *command, Callback callback);
+void CLIMenu_add(CLIMenu *self, const char *command, Callback callback);
 
-void menuRemove(CLIMenu *self, const char *command);
+void CLIMenu_remove(CLIMenu *self, const char *command);
 
-void menuClear(CLIMenu *self);
+void CLIMenu_clear(CLIMenu *self);
 
-void menuRun(CLIMenu *self, const char *exitCommand);
+void CLIMenu_run(CLIMenu *self, const char *exitCommand);
 
 int defaultNoSuchCommandCallback(CLIMenu *menu, int argc, char **argv) {
     printf("command not found: %s\n", argv[0]);
     return 0;
 }
 
-CLIMenu *newCLIMenu() {
+CLIMenu *new_CLIMenu() {
     CLIMenu *menu = malloc(sizeof(CLIMenu));
-    menu->__callbackMap = newCallbackMap();
+    menu->__callbackMap = new_CallbackMap();
     menu->data = NULL;
     menu->initializeCallback = NULL;
     menu->finalizeCallback = NULL;
     menu->promptCallback = NULL;
     menu->noSuchCommandCallback = defaultNoSuchCommandCallback;
-    menu->add = menuAdd;
-    menu->remove = menuRemove;
-    menu->clear = menuClear;
-    menu->run = menuRun;
+    menu->add = CLIMenu_add;
+    menu->remove = CLIMenu_remove;
+    menu->clear = CLIMenu_clear;
+    menu->run = CLIMenu_run;
     return menu;
 }
 
-void deleteCLIMenu(CLIMenu **pself) {
+void delete_CLIMenu(CLIMenu **pself) {
     if (!pself) {
         return;
     }
@@ -50,12 +50,12 @@ void deleteCLIMenu(CLIMenu **pself) {
     CLIMenu *self = *pself;
     *pself = NULL;
     if (self) {
-        deleteCallbackMap((CallbackMap **) &self->__callbackMap);
+        delete_CallbackMap((CallbackMap **) &self->__callbackMap);
         free(self);
     }
 }
 
-void menuAdd(CLIMenu *self, const char *command, Callback callback) {
+void CLIMenu_add(CLIMenu *self, const char *command, Callback callback) {
     if (!self) {
         return;
     }
@@ -63,7 +63,7 @@ void menuAdd(CLIMenu *self, const char *command, Callback callback) {
     map->put(map, command, callback);
 }
 
-void menuRemove(CLIMenu *self, const char *command) {
+void CLIMenu_remove(CLIMenu *self, const char *command) {
     if (!self) {
         return;
     }
@@ -71,7 +71,7 @@ void menuRemove(CLIMenu *self, const char *command) {
     map->remove(map, command);
 }
 
-void menuClear(CLIMenu *self) {
+void CLIMenu_clear(CLIMenu *self) {
     if (!self) {
         return;
     }
@@ -158,7 +158,7 @@ void freeCommand(Command command) {
     free(command.argv);
 }
 
-void menuRun(CLIMenu *self, const char *exitCommand) {
+void CLIMenu_run(CLIMenu *self, const char *exitCommand) {
     if (self->initializeCallback) {
         self->initializeCallback(self);
     }

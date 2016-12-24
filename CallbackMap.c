@@ -23,7 +23,7 @@ struct _TreeNode {
     TreeNode *right;
 };
 
-TreeRoot *treeInsert(TreeRoot *root, const char *key, Callback callback) {
+TreeRoot *SearchTree_insert(TreeRoot *root, const char *key, Callback callback) {
     if (!root) {
         // First insertion, create a node as root.
         TreeNode *node = malloc(sizeof(TreeNode));
@@ -35,56 +35,56 @@ TreeRoot *treeInsert(TreeRoot *root, const char *key, Callback callback) {
 
     int compareResult = strcmp(root->key, key);
     if (compareResult > 0) {
-        root->left = treeInsert(root->left, key, callback);
+        root->left = SearchTree_insert(root->left, key, callback);
     } else if (compareResult < 0) {
-        root->right = treeInsert(root->right, key, callback);
+        root->right = SearchTree_insert(root->right, key, callback);
     } else {
         root->callback = callback;
     }
     return root;
 }
 
-TreeNode *treeFind(TreeRoot *root, const char *key) {
+TreeNode *SearchTree_find(TreeRoot *root, const char *key) {
     if (root) {
         int compareResult = strcmp(root->key, key);
         if (compareResult > 0) {
-            return treeFind(root->left, key);
+            return SearchTree_find(root->left, key);
         } else if (compareResult < 0) {
-            return treeFind(root->right, key);
+            return SearchTree_find(root->right, key);
         }
     }
     return root;  // Return root itself, or NULL.
 }
 
-TreeNode *treeFindMin(TreeRoot *root) {
+TreeNode *SearchTree_findMin(TreeRoot *root) {
     if (!root) {
         return NULL;
     } else if (!root->left) {
         return root;
     } else {
         // Keep digging left sub tree.
-        return treeFindMin(root->left);
+        return SearchTree_findMin(root->left);
     }
 }
 
-TreeRoot *treeRemove(TreeRoot *root, const char *key) {
+TreeRoot *SearchTree_remove(TreeRoot *root, const char *key) {
     if (root) {
         int compareResult = strcmp(root->key, key);
         if (compareResult > 0) {
-            root->left = treeRemove(root->left, key);
+            root->left = SearchTree_remove(root->left, key);
         } else if (compareResult < 0) {
-            root->right = treeRemove(root->right, key);
+            root->right = SearchTree_remove(root->right, key);
         } else {
             // Remove current node.
             TreeNode *tmp;
             if (root->left && root->right) {
                 // Has two children.
                 // Replace current node with the min of right sub tree.
-                tmp = treeFindMin(root->right);
+                tmp = SearchTree_findMin(root->right);
                 free(root->key);
                 root->key = strdup(tmp->key);
                 root->callback = tmp->callback;
-                root->right = treeRemove(root->right, tmp->key);
+                root->right = SearchTree_remove(root->right, tmp->key);
             } else {
                 // Has one child.
                 tmp = root;
@@ -101,10 +101,10 @@ TreeRoot *treeRemove(TreeRoot *root, const char *key) {
     return root;
 }
 
-void treeClear(TreeRoot *root) {
+void SearchTree_clear(TreeRoot *root) {
     if (root) {
-        treeClear(root->left);
-        treeClear(root->right);
+        SearchTree_clear(root->left);
+        SearchTree_clear(root->right);
         free(root->key);
         free(root);
     }
@@ -112,47 +112,47 @@ void treeClear(TreeRoot *root) {
 
 #pragma mark - Map
 
-void mapPut(CallbackMap *self, const char *key, Callback callback) {
+void CallbackMap_put(CallbackMap *self, const char *key, Callback callback) {
     if (!self) {
         return;
     }
-    self->__root = treeInsert(self->__root, key, callback);
+    self->__root = SearchTree_insert(self->__root, key, callback);
 }
 
-Callback mapGet(const CallbackMap *self, const char *key) {
+Callback CallbackMap_get(const CallbackMap *self, const char *key) {
     if (!self) {
         return NULL;
     }
-    TreeNode *node = treeFind(self->__root, key);
+    TreeNode *node = SearchTree_find(self->__root, key);
     return node == NULL ? NULL : node->callback;
 }
 
-void mapRemove(CallbackMap *self, const char *key) {
+void CallbackMap_remove(CallbackMap *self, const char *key) {
     if (!self) {
         return;
     }
-    self->__root = treeRemove(self->__root, key);
+    self->__root = SearchTree_remove(self->__root, key);
 }
 
-void mapClear(CallbackMap *self) {
+void CallbackMap_clear(CallbackMap *self) {
     if (!self) {
         return;
     }
-    treeClear(self->__root);
+    SearchTree_clear(self->__root);
     self->__root = NULL;
 }
 
-CallbackMap *newCallbackMap() {
+CallbackMap *new_CallbackMap() {
     CallbackMap *map = malloc(sizeof(CallbackMap));
     map->__root = NULL;
-    map->put = mapPut;
-    map->get = mapGet;
-    map->remove = mapRemove;
-    map->clear = mapClear;
+    map->put = CallbackMap_put;
+    map->get = CallbackMap_get;
+    map->remove = CallbackMap_remove;
+    map->clear = CallbackMap_clear;
     return map;
 }
 
-void deleteCallbackMap(CallbackMap **pself) {
+void delete_CallbackMap(CallbackMap **pself) {
     if (!pself) {
         return;
     }
@@ -160,7 +160,7 @@ void deleteCallbackMap(CallbackMap **pself) {
     CallbackMap *self = *pself;
     *pself = NULL;
     if (self) {
-        mapClear(self);
+        CallbackMap_clear(self);
         free(self);
     }
 }

@@ -25,8 +25,8 @@ struct _CallbackMap {
     void (*clear)(CallbackMap *self);
 };
 
-CallbackMap *newCallbackMap();
+CallbackMap *new_CallbackMap();
 
-void deleteCallbackMap(CallbackMap **pself);
+void delete_CallbackMap(CallbackMap **pself);
 
 #endif //CLIMENU_CALLBACK_MAP_H

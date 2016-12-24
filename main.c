@@ -47,42 +47,47 @@ int echo(CLIMenu *menu, int argc, char **argv) {
 }
 
 char *concatPath(const char *old, const char *new) {
-    char *tmp;
     if (new[0] == '/') {
-        // Absolute path, just overwrite it.
-        tmp = strdup(new);
-    } else {
-        char *curr = strdup(old);
-        char *path = strdup(new);
-        int currLen = (int) strlen(curr);
-        int pathLen = (int) strlen(path);
-        tmp = malloc(sizeof(char) * (currLen + pathLen + 1));
-        strcpy(tmp, curr);
-        int index = currLen;
-        char *part = strtok(path, "/");
-        while (part != NULL) {
-            if (strcmp(".", part) == 0) {
-                // .
-            } else if (strcmp("..", part) == 0) {
-                // ..
-                for (; index > 0 && tmp[index] != '/'; index--);
-                tmp[index] = '\0';
-            } else {
+        // Absolute path, take it as relative path of /.
+        int offset = 1;
+        for (; new[offset] == '/'; offset++);
+        old = "/";
+        new = &new[offset];
+    }
+    char *tmp;
+    char *curr = strdup(old);
+    char *path = strdup(new);
+    int currLen = (int) strlen(curr);
+    int pathLen = (int) strlen(path);
+    tmp = malloc(sizeof(char) * (currLen + pathLen + 1));
+    strcpy(tmp, curr);
+    int index = currLen;
+    char *part = strtok(path, "/");
+    while (part != NULL) {
+        if (strcmp(".", part) == 0) {
+            // .
+        } else if (strcmp("..", part) == 0) {
+            // ..
+            for (; index > 0 && tmp[index] != '/'; index--);
+            tmp[index] = '\0';
+        } else {
+            if (index == 0 || tmp[index - 1] != '/') {
+                // Current last character is not '/', or string is empty
                 tmp[index++] = '/';
                 tmp[index] = '\0';
-                index += strlen(part);
-                strcat(tmp, part);
             }
-            part = strtok(NULL, "/");
+            index += strlen(part);
+            strcat(tmp, part);
         }
-        if (index == 0) {
-            tmp[index++] = '/';
-        }
-        tmp[index] = '\0';
-        tmp = realloc(tmp, sizeof(char) * (strlen(tmp) + 1));
-        free(curr);
-        free(part);
+        part = strtok(NULL, "/");
     }
+    if (index == 0) {
+        tmp[index++] = '/';
+    }
+    tmp[index] = '\0';
+    tmp = realloc(tmp, sizeof(char) * (strlen(tmp) + 1));
+    free(curr);
+    free(part);
     return tmp;
 }
 
@@ -222,7 +227,7 @@ void prompt(CLIMenu *menu) {
 }
 
 int main(int argc, char **argv) {
-    CLIMenu *menu = newCLIMenu();
+    CLIMenu *menu = new_CLIMenu();
     menu->add(menu, "hello", hello);
     menu->add(menu, "echo", echo);
     menu->add(menu, "cd", cd);
@@ -235,6 +240,6 @@ int main(int argc, char **argv) {
     menu->finalizeCallback = finalize;
     menu->promptCallback = prompt;
     menu->run(menu, "exit");
-    deleteCLIMenu(&menu);
+    delete_CLIMenu(&menu);
     return 0;
 }

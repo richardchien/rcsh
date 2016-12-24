@@ -47,8 +47,8 @@ __重要：__`_` 和 `__` 开头的任何变量、函数，使用者都不应该
 ### 创建和销毁 CLIMenu
 
 ```c
-CLIMenu *menu = newCLIMenu();
-deleteCLIMenu(&menu);
+CLIMenu *menu = new_CLIMenu();
+delete_CLIMenu(&menu);
 ```
 
 ### 成员变量
